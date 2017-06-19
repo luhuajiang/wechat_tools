@@ -1,5 +1,34 @@
 <html>
+    <script type="text/css">
+<script type="text/javascript" src="http://ajax.microsoft.com/ajax/jquery
+/jquery-1.4.min.js"></script>
+     img{
+         position:absolute;
+         left:100px;
+         top:150px
+     }
+    </script>
     <body>
-        {{ QRImg }}
+        <img id="qrcode" width="500px" height="500px" />
+        
     </body>
+    <script>
+     (function() {
+         var qcode_src = location.origin + '/showLogin?' + new Date().getTime();
+         document.getElementById('qrcode').src = qcode_src
+
+         uuid = {{uuid}}
+         console.log(uuid)
+         $.get('isLogin',function(data, status){
+             alert("Data:" + data + "\n status :" + status);
+         })
+
+         $.get('isScan' + uuid, function(data, status){
+
+
+         })
+         
+           
+     })()
+    </script>
 </html>
