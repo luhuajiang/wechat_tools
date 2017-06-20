@@ -23,11 +23,11 @@
              console.log(status)
              uuid = data;
              document.getElementById('qrcode').src = "https://login.weixin.qq.com/qrcode/" + data + "?t=webwx"
-             time_priod= setInterval(confirmLogin(), 1000);
+             time_priod= setInterval(confirmLogin, 1000);
          })
 
          function confirmLogin(){
-             $.get( "https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?uuid=" + uuid + "&tip=1&_=" + new Date().getTime(), function(data, status){
+             $.get("/isScan/" + uuid , function(data, status){
                  if(data == "window.code=408;") {
                      console.log("timeout");
                  }
@@ -40,7 +40,6 @@
                      getTicket(data.split("window.code=200\n",""));
                  }
              })
-
 
              function getTicket(redirect_uri) {
                  $.post(base_uri + "/isLogin", {redirect_uri,redirect_uri}, function(data){

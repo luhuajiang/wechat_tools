@@ -82,33 +82,14 @@ def getUUID():
     return 'error' 
 
 
-@app.route('/isScan')
-def isScan():
-    url = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?tip=%s&uuid=%s&_=%s' % (tip, uuid, int(time.time()))
+@app.route('/isScan/<uuid>')
+def isScan(uuid):
+    url = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?tip=%s&uuid=%s&_=%s' % ('1', uuid, int(time.time()))
 
     request = urllib.request.Request(url=url)
     response = urllib.request.urlopen(request)
     data = response.read()
-
-    regx = r'window.code=(\d+);'
-    pm = re.search(regx, str(data))
-
-    code = pm.group(1)
-
-    if code == '201':
-        return '成功扫描,请在手机上点击确认以登录'
-
-    elif code == '200':
-        print(u'login ...')
-        regx = r'window.redirect_uri="(\S+?)";'
-        pm = re.search(regx, str(data))
-        redirect_uri = pm.group(1) + '&fun=new'
-        print(redirect_uri)
-        base_uri = redirect_uri[:redirect_uri.rfind('/')]
-        print(base_uri)
-    elif code == '408':
-        pass
-    return code
+    return str(data)
 
 @app.route('/isLogin', methods = ['POST'])
 def isLogin():
