@@ -1,7 +1,6 @@
 <html>
+<script type="text/javascript" src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.min.js"></script>
     <script type="text/css">
-<script type="text/javascript" src="http://ajax.microsoft.com/ajax/jquery
-/jquery-1.4.min.js"></script>
      img{
          position:absolute;
          left:100px;
@@ -14,19 +13,59 @@
     </body>
     <script>
      (function() {
-         var qcode_src = location.origin + '/showLogin?' + new Date().getTime();
+         var base_uri = location.origin;
+         var qcode_src = location.origin + '/getUUID?' + new Date().getTime();
+         var uuid;
          document.getElementById('qrcode').src = qcode_src
-
-         uuid = {{uuid}}
-         console.log(uuid)
-         $.get('isLogin',function(data, status){
-             alert("Data:" + data + "\n status :" + status);
+         var time_priod;
+         $.get(qcode_src,function(data, status){
+             console.log(data)
+             console.log(status)
+             uuid = data;
+             document.getElementById('qrcode').src = "https://login.weixin.qq.com/qrcode/" + data + "?t=webwx"
+             time_priod= setInterval(confirmLogin(), 1000);
          })
 
-         $.get('isScan' + uuid, function(data, status){
+         function confirmLogin(){
+             $.get( "https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?uuid=" + uuid + "&tip=1&_=" + new Date().getTime(), function(data, status){
+                 if(data == "window.code=408;") {
+                     console.log("timeout");
+                 }
+                 if(data == "window.code=201;") {
+                    console.log("wait for confirm...");
+                 }
+                 if(data.indexOf("200") > -1) {
+                     console.log("login Success")
+                     clearInterval(time_priod);
+                     getTicket(data.split("window.code=200\n",""));
+                 }
+             })
 
 
-         })
+             function getTicket(redirect_uri) {
+                 $.post(base_uri + "/isLogin", {redirect_uri,redirect_uri}, function(data){
+                     console.log(data);
+                     webwxInit(data);
+                     wxgetConstact();
+                 })
+             }
+
+             function getConstact() {
+                 $.post('https://wx.qq.com/cgi-bin/mmwebwx-bin//webwxgetcontact?pass_ticket=' + base_request.pass_ticket + '&skey=' + base_request.pass_ticket + '+&r='+new Date().getTime(), function(data){
+                     console.log(data);
+                     console.log(data.MemberList);
+                 })
+             }
+
+             function webwxInit(base_request) {
+                 param = {
+                    BaseRequest:base_request
+                 }
+                 $.post('https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxinit?pass_ticket=' + base_request.pass_ticket + "&skey=" + base_requst.skey + '&r=' + new Date().getTime(), param, function(data) {
+                 console.log(data)
+                 })
+             }
+         }
          
            
      })()

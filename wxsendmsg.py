@@ -103,7 +103,7 @@ def waitForLogin():
     global tip, base_uri, redirect_uri
 
     url = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?tip=%s&uuid=%s&_=%s' % (tip, uuid, int(time.time()))
-
+    print(url)
     request = urllib.request.Request(url=url)
     response = urllib.request.urlopen(request)
     data = response.read()

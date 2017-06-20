@@ -18,6 +18,7 @@ from io import *
 from io import * 
 from flask import render_template
 from flask import send_file
+from flask import request
 
 
 app = Flask(__name__)
@@ -30,7 +31,6 @@ QRImagePath = os.getcwd() + '/qrcode.jpg'
 @app.route('/index')
 def index():
     return render_template('index.html')
-
 @app.route('/showLogin')
 def showLogin():
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
@@ -53,7 +53,7 @@ def getQRImage():
     f = open(QRImagePath, 'wb')
     f.write(response.read())
     f.close()
-
+@app.route('/getUUID')
 def getUUID():
     global uuid
 
@@ -78,9 +78,8 @@ def getUUID():
     uuid = pm.group(2)
 
     if code == '200':
-        return True
-
-    return False
+        return uuid
+    return 'error' 
 
 
 @app.route('/isScan')
@@ -111,8 +110,10 @@ def isScan():
         pass
     return code
 
-@app.route('/isLogin')
-def isLogin(redirect_uri):
+@app.route('/isLogin', methods = ['POST'])
+def isLogin():
+
+    redirect_uri = request.form['redirect_uri']
     global skey, wxsid, wxuin, pass_ticket, BaseRequest
 
     request = urllib.request.Request(url=redirect_uri)
@@ -156,6 +157,7 @@ def isLogin(redirect_uri):
         'Sid': wxsid,
         'Skey': skey,
         'DeviceID': deviceId,
+        'pass_ticket': pass_ticket,
     }
 
     return json.dumps(BaseRequest) 
