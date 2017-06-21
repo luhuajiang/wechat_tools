@@ -15,7 +15,6 @@ import threading
 import logging
 from flask import Flask
 from io import * 
-from io import * 
 from flask import render_template
 from flask import send_file
 from flask import request
@@ -91,16 +90,17 @@ def isScan(uuid):
     data = response.read()
     return str(data)
 
+
 @app.route('/isLogin', methods = ['POST'])
 def isLogin():
-
-    redirect_uri = request.form['redirect_uri']
+    redirect_uri = request.values.get('redirect_uri', 0)
+    print(redirect_uri)
     global skey, wxsid, wxuin, pass_ticket, BaseRequest
 
-    request = urllib.request.Request(url=redirect_uri)
-    response = urllib.request.urlopen(request)
+    request1 = urllib.request.Request(url=redirect_uri)
+    response = urllib.request.urlopen(request1)
     data = response.read()
-
+    print(str(data))
     # print data
 
     '''
@@ -142,6 +142,48 @@ def isLogin():
     }
 
     return json.dumps(BaseRequest) 
+
+@app.route('/getConstact')
+def getConstact():
+    pass_ticket = request.values.get('pass_ticket', 0)
+    skey = request.values.get('skey', 0)
+    url = base_uri + '/webwxgetcontact?pass_ticket=%s&skey=%s&r=%s' % (pass_ticket, skey, int(time.time()))
+
+    request = urllib.request.Request(url=url)
+    request.add_header('ContentType', 'application/json; charset=UTF-8')
+    response = urllib.request.urlopen(request)
+    data = response.read()
+
+    if DEBUG:
+        f = open(os.getcwd() + '/webwxgetcontact.json', 'wb')
+        f.write(data)
+        f.close()
+
+    # print data
+    data = data.decode('utf-8', 'replace')
+
+    dic = json.loads(data)
+    MemberList = dic['MemberList']
+
+    # 倒序遍历,不然删除的时候出问题..
+    SpecialUsers = ['newsapp', 'fmessage', 'filehelper', 'weibo', 'qqmail', 'fmessage', 'tmessage', 'qmessage',
+                    'qqsync', 'floatbottle', 'lbsapp', 'shakeapp', 'medianote', 'qqfriend', 'readerapp', 'blogapp',
+                    'facebookapp', 'masssendapp', 'meishiapp', 'feedsapp', 'voip', 'blogappweixin', 'weixin',
+                    'brandsessionholder', 'weixinreminder', 'wxid_novlwrv3lqwv11', 'gh_22b87fa7cb3c',
+                    'officialaccounts', 'notification_messages', 'wxid_novlwrv3lqwv11', 'gh_22b87fa7cb3c', 'wxitil',
+                    'userexperience_alarm', 'notification_messages']
+    for i in range(len(MemberList) - 1, -1, -1):
+        Member = MemberList[i]
+        if Member['VerifyFlag'] & 8 != 0:  # 公众号/服务号
+            MemberList.remove(Member)
+        elif Member['UserName'] in SpecialUsers:  # 特殊账号
+            MemberList.remove(Member)
+        elif Member['UserName'].find('@@') != -1:  # 群聊
+            MemberList.remove(Member)
+        elif Member['UserName'] == My['UserName']:  # 自己
+            MemberList.remove(Member)
+
+    return json.dumps(MemberList)
 
 @app.route('/webwxinit')
 def webwxinit(base_uri,BaseRequest):

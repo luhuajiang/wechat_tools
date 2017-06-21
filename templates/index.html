@@ -37,12 +37,12 @@
                  if(data.indexOf("200") > -1) {
                      console.log("login Success")
                      clearInterval(time_priod);
-                     getTicket(data.split("window.code=200\n",""));
+                     getTicket(data.substring(data.indexOf("https"),data.length -3));
                  }
              })
 
              function getTicket(redirect_uri) {
-                 $.post(base_uri + "/isLogin", {redirect_uri,redirect_uri}, function(data){
+                 $.post(base_uri + "/isLogin", {redirect_uri:redirect_uri}, function(data){
                      console.log(data);
                      webwxInit(data);
                      wxgetConstact();
@@ -50,9 +50,16 @@
              }
 
              function getConstact() {
-                 $.post('https://wx.qq.com/cgi-bin/mmwebwx-bin//webwxgetcontact?pass_ticket=' + base_request.pass_ticket + '&skey=' + base_request.pass_ticket + '+&r='+new Date().getTime(), function(data){
+
+                 $.post('/getConstact', {pass_ticket:'pass_ticket'}, function(data){
                      console.log(data);
                      console.log(data.MemberList);
+                 })
+             }
+
+             function sendMessage(){
+                 $.post('/sendMessage', {'message':message, user_name: user_name}, function(data){
+                     console.log(data)
                  })
              }
 
