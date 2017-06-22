@@ -19,11 +19,12 @@
          document.getElementById('qrcode').src = qcode_src
          var time_priod;
          var base_request;
+         var flag = false;
          $.get(qcode_src,function(data, status){
-             console.log(data)
-             console.log(status)
+             console.log(data);
+             console.log(status);
              uuid = data;
-             document.getElementById('qrcode').src = "https://login.weixin.qq.com/qrcode/" + data + "?t=webwx"
+             document.getElementById('qrcode').src = "https://login.weixin.qq.com/qrcode/" + data + "?t=webwx&_=" + new Date().getTime();
              time_priod= setInterval(confirmLogin, 1000);
          })
 
@@ -36,9 +37,12 @@
                     console.log("wait for confirm...");
                  }
                  if(data.indexOf("200") > -1) {
-                     console.log("login Success")
+                     console.log("login Success");
                      clearInterval(time_priod);
-                     getTicket(data.substring(data.indexOf("https"),data.length -3));
+                     if (!flag) {
+                         flag = true;
+                         getTicket(data.substring(data.indexOf("https"),data.length -3));
+                     }
                  }
              })
 
@@ -59,7 +63,7 @@
              }
              
              function webwxinit() {
-                 $.get('/webwxinit', {pass_ticket:base_request.pass_ticket, skey:base_request.Skey,base_request:sessionStorage.getItem('base_request')}, function(data){
+                 $.get('/aaa', {pass_ticket:base_request.pass_ticket, skey:base_request.Skey,base_request:sessionStorage.getItem('base_request')}, function(data){
                      console.log(data)
                      getConstact();
                  })

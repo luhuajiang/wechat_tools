@@ -30,6 +30,51 @@ QRImagePath = os.getcwd() + '/qrcode.jpg'
 @app.route('/index')
 def index():
     return render_template('index.html')
+@app.route('/aaa')
+def aaa():
+    pass_ticket = request.values.get('pass_ticket')
+    skey = request.values.get('skey')
+    
+    base_request = json.loads(request.values.get('base_request'))
+    base_request.pop('pass_ticket')
+
+    base_uri = 'https://wx2.qq.com/cgi-bin/mmwebwx-bin'
+    global SyncKey
+    url = base_uri + '/webwxinit?pass_ticket=%s&skey=%s&r=%s' % (pass_ticket, skey, int(time.time()))
+    params = {
+        'BaseRequest': base_request
+    }
+
+    request2 = urllib.request.Request(url=url, data=json.dumps(params).encode('utf-8'))
+    request2.add_header('ContentType', 'application/json; charset=UTF-8')
+    response = urllib.request.urlopen(request2)
+    data = response.read()
+
+    if DEBUG:
+        f = open(os.getcwd() + '/webwxinit.json', 'wb')
+        f.write(data)
+        f.close()
+
+    # print data
+
+    global ContactList, My
+    dic = json.loads(data.decode())
+    ContactList = dic['ContactList']
+    My = dic['User']
+
+    ErrMsg = dic['BaseResponse']['ErrMsg']
+    # if len(ErrMsg) > 0:
+    # 	print ErrMsg
+
+    Ret = dic['BaseResponse']['Ret']
+    if Ret != 0:
+        return 'False'
+
+    #获得用户与服务器同步的信息
+    #SyncKey = dic['SyncKey']
+
+    return json.dumps(dic)
+
 @app.route('/showLogin')
 def showLogin():
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
@@ -67,7 +112,6 @@ def getUUID():
     request = urllib.request.Request(url=url, data=urllib.parse.urlencode(params).encode(encoding='UTF8'))
     response = urllib.request.urlopen(request)
     data = response.read()
-    print(data)
     # print data
     # window.QRLogin.code = 200; window.QRLogin.uuid = "oZwt_bFfRg==";
     regx = r'window.QRLogin.code = (\d+); window.QRLogin.uuid = "(\S+?)"'
@@ -83,7 +127,7 @@ def getUUID():
 
 @app.route('/isScan/<uuid>')
 def isScan(uuid):
-    url = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?tip=%s&uuid=%s&_=%s' % ('1', uuid, int(time.time()))
+    url = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?tip=%s&uuid=%s&_=%s' % ('1', uuid, int(time.time() * 100))
 
     request = urllib.request.Request(url=url)
     response = urllib.request.urlopen(request)
@@ -95,13 +139,13 @@ def isScan(uuid):
 def isLogin():
     redirect_uri = request.values.get('redirect_uri', 0)
     redirect_uri = redirect_uri + '&fun=new'
-    print(redirect_uri)
     global skey, wxsid, wxuin, pass_ticket, BaseRequest
 
+    print('isLogin url ======> ' + redirect_uri)
+    
     request1 = urllib.request.Request(url=redirect_uri)
     response = urllib.request.urlopen(request1)
     data = response.read()
-    print(str(data))
     # print data
 
     '''
@@ -141,24 +185,29 @@ def isLogin():
         'pass_ticket': pass_ticket,
         'DeviceID': 'e000000000000000',
     }
-
+    
     return json.dumps(BaseRequest,pass_ticket) 
 
 @app.route('/getConstact')
 def getConstact():
-    base_uri = "https://wx.qq.com/cgi-bin/mmwebwx-bin"
     pass_ticket = request.values.get('pass_ticket', 0)
     skey = request.values.get('skey', 0)
-    print(pass_ticket)
-    print(skey)
+    
+    base_uri ='https://wx2.qq.com/cgi-bin/mmwebwx-bin' 
+    return json.dumps(getWxConstactFriend())
+@app.route('/getFriend')
+def getWxConstactFriend():
+    
+    pass_ticket = request.values.get('pass_ticket', 0)
+    skey = request.values.get('skey', 0)
+    base_uri ='https://wx2.qq.com/cgi-bin/mmwebwx-bin' 
+    
     url = base_uri + '/webwxgetcontact?pass_ticket=%s&skey=%s&r=%s' % (pass_ticket, skey, int(time.time()))
-    print(url)
-
+    print('getConstact url ======> ' + url)
     request2 = urllib.request.Request(url=url)
     request2.add_header('ContentType', 'application/json; charset=UTF-8')
     response = urllib.request.urlopen(request2)
     data = response.read()
-    print(str(data))
 
     if DEBUG:
         f = open(os.getcwd() + '/webwxgetcontact.json', 'wb')
@@ -199,15 +248,16 @@ def webwxinit():
     base_request = json.loads(request.values.get('base_request'))
     base_request.pop('pass_ticket')
 
-    print('base_request = ======> '+ str(base_request))
     base_uri ='https://wx.qq.com/cgi-bin/mmwebwx-bin' 
 
     url = base_uri + '/webwxinit?pass_ticket=%s&skey=%s&r=%s' % (pass_ticket, skey, int(time.time()))
+    
+    print('webwxinit =============> ' + base_request)
+
     params = {
         'BaseRequest': base_request
     }
-    print('=========>' + url)
-    print('params ==========> ' + json.dumps(params))
+
     request2 = urllib.request.Request(url=url, data=json.dumps(params).encode('utf-8'))
     request2.add_header('ContentType', 'application/json; charset=UTF-8')
     response = urllib.request.urlopen(request2)
@@ -235,9 +285,9 @@ def webwxinit():
 
     #获得用户与服务器同步的信息
     #SyncKey = dic['SyncKey']
+    return json.dumps(getWxConstactFriend(base_uri, pass_ticket, skey))
 
-    return json.dumps(ContactList) 
-
+    
 @app.route('/sendMsg/<message>/<user_name>')
 def sendMsg():
     t = threading.Thread(target = sendMsg, args=(My['UserName'], userName, message,500))
