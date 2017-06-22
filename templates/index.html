@@ -18,6 +18,7 @@
          var uuid;
          document.getElementById('qrcode').src = qcode_src
          var time_priod;
+         var base_request;
          $.get(qcode_src,function(data, status){
              console.log(data)
              console.log(status)
@@ -44,16 +45,23 @@
              function getTicket(redirect_uri) {
                  $.post(base_uri + "/isLogin", {redirect_uri:redirect_uri}, function(data){
                      console.log(data);
-                     webwxInit(data);
-                     wxgetConstact();
+                     base_request = JSON.parse(data);
+                     sessionStorage.setItem('base_request', data);
+                     webwxinit()
                  })
              }
 
              function getConstact() {
-
-                 $.post('/getConstact', {pass_ticket:'pass_ticket'}, function(data){
+                 $.get('/getConstact', {pass_ticket:base_request.pass_ticket, skey:base_request.Skey}, function(data){
                      console.log(data);
                      console.log(data.MemberList);
+                 })
+             }
+             
+             function webwxinit() {
+                 $.get('/webwxinit', {pass_ticket:base_request.pass_ticket, skey:base_request.Skey,base_request:sessionStorage.getItem('base_request')}, function(data){
+                     console.log(data)
+                     getConstact();
                  })
              }
 
@@ -63,14 +71,6 @@
                  })
              }
 
-             function webwxInit(base_request) {
-                 param = {
-                    BaseRequest:base_request
-                 }
-                 $.post('https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxinit?pass_ticket=' + base_request.pass_ticket + "&skey=" + base_requst.skey + '&r=' + new Date().getTime(), param, function(data) {
-                 console.log(data)
-                 })
-             }
          }
          
            

@@ -94,6 +94,7 @@ def isScan(uuid):
 @app.route('/isLogin', methods = ['POST'])
 def isLogin():
     redirect_uri = request.values.get('redirect_uri', 0)
+    redirect_uri = redirect_uri + '&fun=new'
     print(redirect_uri)
     global skey, wxsid, wxuin, pass_ticket, BaseRequest
 
@@ -137,22 +138,27 @@ def isLogin():
         'Uin': int(wxuin),
         'Sid': wxsid,
         'Skey': skey,
-        'DeviceID': deviceId,
         'pass_ticket': pass_ticket,
+        'DeviceID': 'e000000000000000',
     }
 
-    return json.dumps(BaseRequest) 
+    return json.dumps(BaseRequest,pass_ticket) 
 
 @app.route('/getConstact')
 def getConstact():
+    base_uri = "https://wx.qq.com/cgi-bin/mmwebwx-bin"
     pass_ticket = request.values.get('pass_ticket', 0)
     skey = request.values.get('skey', 0)
+    print(pass_ticket)
+    print(skey)
     url = base_uri + '/webwxgetcontact?pass_ticket=%s&skey=%s&r=%s' % (pass_ticket, skey, int(time.time()))
+    print(url)
 
-    request = urllib.request.Request(url=url)
-    request.add_header('ContentType', 'application/json; charset=UTF-8')
-    response = urllib.request.urlopen(request)
+    request2 = urllib.request.Request(url=url)
+    request2.add_header('ContentType', 'application/json; charset=UTF-8')
+    response = urllib.request.urlopen(request2)
     data = response.read()
+    print(str(data))
 
     if DEBUG:
         f = open(os.getcwd() + '/webwxgetcontact.json', 'wb')
@@ -186,15 +192,25 @@ def getConstact():
     return json.dumps(MemberList)
 
 @app.route('/webwxinit')
-def webwxinit(base_uri,BaseRequest):
+def webwxinit():
+
+    pass_ticket = request.values.get('pass_ticket')
+    skey = request.values.get('skey')
+    base_request = json.loads(request.values.get('base_request'))
+    base_request.pop('pass_ticket')
+
+    print('base_request = ======> '+ str(base_request))
+    base_uri ='https://wx.qq.com/cgi-bin/mmwebwx-bin' 
+
     url = base_uri + '/webwxinit?pass_ticket=%s&skey=%s&r=%s' % (pass_ticket, skey, int(time.time()))
     params = {
-        'BaseRequest': BaseRequest
+        'BaseRequest': base_request
     }
-
-    request = urllib.request.Request(url=url, data=json.dumps(params).encode('utf-8'))
-    request.add_header('ContentType', 'application/json; charset=UTF-8')
-    response = urllib.request.urlopen(request)
+    print('=========>' + url)
+    print('params ==========> ' + json.dumps(params))
+    request2 = urllib.request.Request(url=url, data=json.dumps(params).encode('utf-8'))
+    request2.add_header('ContentType', 'application/json; charset=UTF-8')
+    response = urllib.request.urlopen(request2)
     data = response.read()
 
     if DEBUG:
@@ -215,7 +231,7 @@ def webwxinit(base_uri,BaseRequest):
 
     Ret = dic['BaseResponse']['Ret']
     if Ret != 0:
-        return False
+        return str(data)
 
     #获得用户与服务器同步的信息
     #SyncKey = dic['SyncKey']

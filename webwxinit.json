@@ -1,0 +1,45 @@
+{
+"BaseResponse": {
+"Ret": 1100,
+"ErrMsg": ""
+}
+,
+"Count": 0,
+"ContactList": [],
+"SyncKey": {
+"Count": 0,
+"List": []
+}
+,
+"User": {
+"Uin": 0,
+"UserName": "",
+"NickName": "",
+"HeadImgUrl": "",
+"RemarkName": "",
+"PYInitial": "",
+"PYQuanPin": "",
+"RemarkPYInitial": "",
+"RemarkPYQuanPin": "",
+"HideInputBarFlag": 0,
+"StarFriend": 0,
+"Sex": 0,
+"Signature": "",
+"AppAccountFlag": 0,
+"VerifyFlag": 0,
+"ContactFlag": 0,
+"WebWxPluginSwitch": 0,
+"HeadImgFlag": 0,
+"SnsFlag": 0
+}
+,
+"ChatSet": "",
+"SKey": "",
+"ClientVersion": 0,
+"SystemTime": 0,
+"GrayScale": 0,
+"InviteStartCount": 0,
+"MPSubscribeMsgCount": 0,
+"MPSubscribeMsgList": [],
+"ClickReportInterval": 0
+}
