@@ -7,10 +7,28 @@
          top:150px
      }
     </script>
-    <body>
-        <img id="qrcode" width="500px" height="500px" />
-        
-    </body>
+	<title>Spring boot and thymeleaf</title>
+	<script src="js/jquery.min.js"></script>
+	<script src="js/angular.min.js"></script>
+<body ng-app="app" ng-controller="myCtrl">
+    <img id="qrcode" width="500px" height="500px" />
+	<table>
+		<tr>
+			<th></th>
+			<th>NickName</th>
+			<th>RemarkName</th>
+		</tr>
+		<!-- <tr ng-repeat="data in array"> -->
+		<!-- <td><input type="checkbox" value="{{data.UserName}}"/></td> -->
+		<!-- <td>{{data.NickName}}</td> -->
+		<!-- <td>{{data.RemarkName}}</td> -->
+		</tr>
+	</table>
+	<textarea rows="" cols="" ng-model="msg">content</textarea>
+	<button ng-click="sent()">send</button>
+</body>
+
+
     <script>
      (function() {
          var base_uri = location.origin;
@@ -20,6 +38,8 @@
          var time_priod;
          var base_request;
          var flag = false;
+         var init;
+         var contact;
          $.get(qcode_src,function(data, status){
              console.log(data);
              console.log(status);
@@ -55,23 +75,43 @@
                  })
              }
 
-             function getConstact() {
-                 $.get('/getConstact', {pass_ticket:base_request.pass_ticket, skey:base_request.Skey}, function(data){
-                     console.log(data);
-                     console.log(data.MemberList);
+             var app = angular.module("app", [])
+             app.controller('myCtrl', function($scope, $http, $location)) {
+                  $scope.getConstact = function() {
+                       $.get('/getConstact', {pass_ticket:base_request.pass_ticket, skey:base_request.Skey}, function(data){
+                       console.log(data);
+                       contact = data;
+                       $scope.array = contact; 
+                       $scope.$apply();
                  })
+                  }
+                	$scope.sent = function(){
+                  		var cks = $("input[type=checkbox]:checked");
+		                  var str = "";
+		                  $.each(cks,function(index,value){
+                          sendMessage($scope.msg, u$(value).val())
+		                  })
+	                }
+
              }
-             
-             function webwxinit() {
+
+            function webwxinit() {
                  $.get('/aaa', {pass_ticket:base_request.pass_ticket, skey:base_request.Skey,base_request:sessionStorage.getItem('base_request')}, function(data){
-                     console.log(data)
                      getConstact();
+                     var appElement = document.querySelector('[ng-controller=myCtrl]');
+                     var $scope = angular.element(appElement).scope(); 
+                     $scope.getConstact();
+                     init = data;
+                     console.log(data)
                  })
              }
 
-             function sendMessage(){
-                 $.post('/sendMessage', {'message':message, user_name: user_name}, function(data){
-                     console.log(data)
+             function sendMessage(message, toUserName){
+                 var user_name = JSON.parse(init).User.UserName;
+var target = "";
+                 console.log('toUserName' + toUserName);
+                 $.get('/send_msg',{message: message, user_name : user_name, to_user_name: toUserName, pass_ticket: base_request.pass_ticket}, function(data){
+                     console.log(data);
                  })
              }
 
