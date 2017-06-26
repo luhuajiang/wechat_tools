@@ -82,9 +82,9 @@ var target = "";
                  $.get('/aaa', {pass_ticket:base_request.pass_ticket, skey:base_request.Skey,base_request:sessionStorage.getItem('base_request')}, function(data){
                      var appElement = document.querySelector('[ng-controller=myCtrl]');
                      var $scope = angular.element(appElement).scope(); 
-                     $scope.getConstact();
                      init = data;
                      console.log(data)
+                     $scope.getConstact();
                  })
              }
 
