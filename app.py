@@ -29,15 +29,9 @@ QRImagePath = os.getcwd() + '/qrcode.jpg'
 
 
 base_uri = 'https://wx2.qq.com/cgi-bin/mmwebwx-bin'
-@app.route('/index')
-def index():
-    return render_template('index.html')
 
-@app.route('/indexaa')
-def index2():
-    return url_for('indexaa', filename='index.html')
-@app.route('/aaa')
-def aaa():
+@app.route('/wxinit')
+def wxinit():
     pass_ticket = request.values.get('pass_ticket')
     skey = request.values.get('skey')
     
@@ -80,25 +74,6 @@ def aaa():
 
     return json.dumps(dic)
 
-@app.route('/showLogin')
-def showLogin():
-    if not getUUID():
-        return 'getUUID failed'
-    getQRImage()
-    return send_file(QRImageName, mimetype='image/jpg')
-
-def getQRImage():
-    url = 'https://login.weixin.qq.com/qrcode/' + uuid
-    params = {
-        't': 'webwx',
-        '_': int(time.time()),
-    }
-    request = urllib.request.Request(url = url, data = urllib.parse.urlencode(params).encode(encoding = 'UTF-8'))
-    response = urllib.request.urlopen(request)
-
-    f = open(QRImagePath, 'wb')
-    f.write(response.read())
-    f.close()
 @app.route('/getUUID')
 def getUUID():
     global uuid
@@ -288,7 +263,6 @@ def webwxinit():
     #SyncKey = dic['SyncKey']
     return json.dumps(getWxConstactFriend(base_uri, pass_ticket, skey))
 
-    
 @app.route('/send_msg')
 def send_msg():
     message = request.values.get('message')
@@ -300,6 +274,7 @@ def send_msg():
     t.start()
     t.join()
     return '200'
+
 # 根据指定的Username发消息
 def sendMsg(MyUserName, ToUserName, msg, seconds, pass_ticket, BaseRequest):
     print('1')
