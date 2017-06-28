@@ -27,14 +27,11 @@ DEBUG = True
 QRImageName = './qrcode.jpg'
 QRImagePath = os.getcwd() + '/qrcode.jpg' 
 
-
-base_uri = 'https://wx2.qq.com/cgi-bin/mmwebwx-bin'
-
 @app.route('/wxinit')
 def wxinit():
     pass_ticket = request.values.get('pass_ticket')
     skey = request.values.get('skey')
-    
+    base_uri = request.values.get('url')
     base_request = json.loads(request.values.get('base_request'))
     base_request.pop('pass_ticket')
 
@@ -171,10 +168,11 @@ def isLogin():
 def getConstact():
     pass_ticket = request.values.get('pass_ticket', 0)
     skey = request.values.get('skey', 0)
-    return getWxConstactFriend(pass_ticket, skey)
+    base_uri = request.values.get('url', 0)
+    return getWxConstactFriend(pass_ticket, skey, base_uri)
 
 @app.route('/getFriend')
-def getWxConstactFriend(pass_ticket, skey):
+def getWxConstactFriend(pass_ticket, skey, base_uri):
     print(' pass_tiecket =====> ' + pass_ticket)
     print(' skey =====> ' + skey)
     # pass_ticket = request.values.get('pass_ticket', 0)
@@ -224,8 +222,8 @@ def webwxinit():
     pass_ticket = request.values.get('pass_ticket')
     skey = request.values.get('skey')
     base_request = json.loads(request.values.get('base_request'))
+    base_uri = request.values.get('url')
     base_request.pop('pass_ticket')
-
 
     url = base_uri + '/webwxinit?pass_ticket=%s&skey=%s&r=%s' % (pass_ticket, skey, int(time.time()))
     
@@ -269,14 +267,17 @@ def send_msg():
     user_name = request.values.get('user_name')
     to_user_name = request.values.get('to_user_name')
     pass_ticket = request.values.get('pass_ticket')
+    base_uri = request.values.get('url')
     base_request = json.loads(request.values.get('base_request'))
-    t = threading.Thread(target = sendMsg, args=(user_name, to_user_name, message,0, pass_ticket, base_request))
+
+    t = threading.Thread(target = sendMsg, args=(user_name, to_user_name, message,0, pass_ticket, base_request, base_uri))
     t.start()
     t.join()
+    
     return '200'
 
 # 根据指定的Username发消息
-def sendMsg(MyUserName, ToUserName, msg, seconds, pass_ticket, BaseRequest):
+def sendMsg(MyUserName, ToUserName, msg, seconds, pass_ticket, BaseRequest, base_uri):
     print('1')
     url = base_uri + '/webwxsendmsg?pass_ticket=%s' % (pass_ticket)
     params = {
